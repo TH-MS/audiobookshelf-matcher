@@ -975,7 +975,7 @@ def write_job(job):
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
-        ctk.set_appearance_mode("dark")
+        ctk.set_appearance_mode("dark" if load_config().get("dark_mode", True) else "light")
         ctk.set_default_color_theme("blue")
         self.title(APP_NAME)
         self.geometry("1180x900")
@@ -1089,9 +1089,17 @@ class App(ctk.CTk):
                                        text_color=("gray30", "gray70"))
         self.path_label.grid(row=0, column=2, sticky="ew", padx=6)
 
+        # Dark / light mode toggle (remembered between runs)
+        self.dark_switch = ctk.CTkSwitch(bar, text="🌙 Dark mode", command=self.toggle_dark_mode)
+        if self.cfg.get("dark_mode", True):
+            self.dark_switch.select()
+        else:
+            self.dark_switch.deselect()
+        self.dark_switch.grid(row=0, column=3, padx=(6, 14))
+
         # Batch status strip (hidden outside batch mode). Back/Forward live in the bottom bar.
         self.nav = ctk.CTkFrame(bar, fg_color="transparent")
-        self.nav.grid(row=1, column=0, columnspan=3, sticky="ew", padx=10, pady=(0, 10))
+        self.nav.grid(row=1, column=0, columnspan=4, sticky="ew", padx=10, pady=(0, 10))
         self.nav.columnconfigure(0, weight=1)
         self.counter = ctk.CTkLabel(self.nav, text="", anchor="w",
                                     font=ctk.CTkFont(weight="bold"))
@@ -1256,6 +1264,12 @@ class App(ctk.CTk):
         self.commit_btn.grid(row=1, column=3, padx=(4, 12), pady=(6, 10))
 
     # ------------------------------- Utilities ------------------------------- #
+    def toggle_dark_mode(self):
+        dark = bool(self.dark_switch.get())
+        ctk.set_appearance_mode("dark" if dark else "light")
+        self.cfg["dark_mode"] = dark
+        save_config(self.cfg)
+
     def set_status(self, msg):
         self.status.configure(text=msg)
 
